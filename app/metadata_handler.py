@@ -49,14 +49,21 @@ def extract_user_metadata(self, file_path, authentication, extractor, cli_args=[
     return metadata_str
 
 
-def delete_user_metadata(file_path, authentication):
+def delete_user_metadata(file_path, authentication, extractor=None):
     """Deletes a users metadata for a given file.
 
     Parameters:
     file_path (str): File path of metadata to delete.
     authentication (str): User authentication as returned by login().
+    extractor (str): Name of extractor to delete file_path metadata for. If None,
+    all metadata for file_path is deleted.
     """
-    metadata_to_delete = FileMetadata.query.filter_by(file_path=file_path, user_uuid=authentication).all()
+    if extractor is None:
+        metadata_to_delete = FileMetadata.query.filter_by(file_path=file_path, user_uuid=authentication).all()
+    else:
+        metadata_to_delete = FileMetadata.query.filter_by(file_path=file_path,
+                                                          user_uuid=authentication,
+                                                          extractor=extractor).all()
 
     if len(metadata_to_delete) == 0:
         return "Metadata for {} does not exist\n".format(os.path.basename(file_path))
@@ -65,4 +72,7 @@ def delete_user_metadata(file_path, authentication):
             db.session.delete(metadata)
         db.session.commit()
 
-        return "Successfully deleted metadata for {}\n".format(os.path.basename(file_path))
+        if extractor is None:
+            return "Successfully deleted metadata for {}\n".format(os.path.basename(file_path))
+        else:
+            return "Successfully deleted {} metadata for {}\n".format(extractor, os.path.basename(file_path))

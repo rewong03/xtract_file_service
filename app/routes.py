@@ -62,7 +62,8 @@ def delete_user():
     """Deletes a user within the SQL database.
 
     Parameters:
-    (json): json in the format of '{"Username": "", "Password": ""} passed through -d from curl for the user to be deleted.
+    (json): json in the format of '{"Username": "", "Password": ""} passed
+    through -d from curl for the user to be deleted.
     (str): String in the format of "Authentication: " with the user id returned from login().
     """
     authentication = request.headers.get('Authentication')
@@ -121,10 +122,10 @@ def user_file_handler():
     extraction, and delete files given that they provide correct authentication.
 
     Parameters:
-    (str): String with authentication returned from login() in the format "Authentication: your_authentication"
-    passed through -H using curl.
-    (str): String with extractor name if method is POST in the format "Extractor: extractor_name" passed through -H
-    using curl.
+    (str): String with authentication returned from login() in the format
+    "Authentication: your_authentication" passed through -H using curl.
+    (str): String with extractor name if method is POST in the format
+    "Extractor: extractor_name" passed through -H using curl.
     (str): Name of file to delete if method is DELETE passed through -d using curl.
     """
     authentication = request.headers.get('Authentication')
@@ -147,7 +148,6 @@ def user_file_handler():
             if 'file' not in request.files:
                 return "No file\n"
             file = request.files['file']
-
             if file.filename == '':
                 return "No file selected\n"
 
@@ -156,7 +156,10 @@ def user_file_handler():
             elif secure_filename(file.filename) is not '':
                 filename = secure_filename(file.filename)
                 file_path = "xtract_user_data/{}/{}".format(authentication, filename)
-                extractor = request.headers.get("Extractor").lower() if request.headers.get("Extractor") is not None else ""
+                if request.headers.get("Extractor") is not None :
+                    extractor = request.headers.get("Extractor").lower()
+                else:
+                    extractor = ""
                 file.save(file_path)
 
                 if is_compressed(file_path):
@@ -189,7 +192,7 @@ def user_file_handler():
 # Example curl:
 # curl -X get -H "Authentication: blah" -d filename http://127.0.0.1:5000/metadata
 # curl -X post -H "Authentication: blah" -d '{"Filename": "blah", "Extractor": "blah"}' http://127.0.0.1:5000/metadata
-# curl -X delete -H "Authentication: blah" -d filename http://127.0.0.1:5000/metadata
+# curl -X delete -H "Authentication: blah" -H "Extractor: blah" -d filename http://127.0.0.1:5000/metadata
 @app.route('/metadata', methods=["GET", "POST", "DELETE"])
 def user_metadata_handler():
     """Allows user to view their metadata, extract metadata for files that are already uploaded,
@@ -198,22 +201,24 @@ def user_metadata_handler():
     Parameters:
     (str): String with authentication returned from login() in the format "Authentication: your_authentication"
     passed through -H using curl.
-    (str): String with filename of metadata to view in the format "Filename: file_name" passed through -H using
+    (str): String with filename of metadata to view in the format "Filename: filename" passed through -H using
     curl if method is GET.
     (json): json in the format of '{"Filename": "", "Extractor": ""} passed through -d from curl for the file to
     extract metadata from as well as the extractor to use if method is POST.
     (str): Name of file to delete metadata for passed through -d from curl if the method is delete.
+    (str): Name of extractor to delete filename metadata for is method is delete. If omitted, all metadata for filename
+    is deleted.
     """
     authentication = request.headers.get('Authentication')
 
     if User.query.filter_by(user_uuid=authentication).first() is not None:
         if request.method == "GET":
             metadata_string = ""
-            file_name = request.get_data().decode('utf-8')
-            file_path = "xtract_user_data/{}/{}".format(authentication, file_name)
+            filename = request.get_data().decode('utf-8')
+            file_path = "xtract_user_data/{}/{}".format(authentication, filename)
 
             for metadata in FileMetadata.query.filter_by(file_path=file_path, user_uuid=authentication).all():
-                metadata_string += "{} ({}): {}\n".format(file_name, metadata.extractor, metadata.metadata_dict)
+                metadata_string += "{} ({}): {}\n".format(filename, metadata.extractor, metadata.metadata_dict)
 
             if metadata_string == "":
                 return "Metadata does not exist\n"
@@ -223,7 +228,7 @@ def user_metadata_handler():
         elif request.method == "POST":
             try:
                 extraction_json = json.loads(request.get_data())
-                file_name = extraction_json['Filename']
+                filename = extraction_json['Filename']
                 extractor = extraction_json['Extractor'].lower()
 
                 if extractor not in extractor_names:
@@ -231,7 +236,7 @@ def user_metadata_handler():
             except:
                 return "Incorrect json format, please format to '{\"Filename\": \"your_file\", \"Extractor\": \"extractor_name\"}'\n"
 
-            file_path = "xtract_user_data/{}/{}".format(authentication, file_name)
+            file_path = "xtract_user_data/{}/{}".format(authentication, filename)
             if FileMetadata.query.filter_by(file_path=file_path, extractor=extractor).first() is None:
                 task = extract_user_metadata.apply_async(args=[file_path, authentication, extractor],
                                                          soft_time_limit=10)
@@ -240,9 +245,10 @@ def user_metadata_handler():
                 return "Already processed metadata for this extractor file combo\n"
 
         elif request.method == "DELETE":
-            file_name = request.get_data().decode('utf-8')
-            file_path = "xtract_user_data/{}/{}".format(authentication, file_name)
-            return delete_user_metadata(file_path, authentication)
+            filename = request.get_data().decode('utf-8')
+            extractor = request.headers.get("Extractor")
+            file_path = "xtract_user_data/{}/{}".format(authentication, filename)
+            return delete_user_metadata(file_path, authentication, extractor)
 
     else:
         return "Invalid credentials\n"
@@ -268,6 +274,8 @@ def user_task_handler():
         return "Task failed"
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def blah():
+    blah = request.json
+    print(blah)
     return "blah"

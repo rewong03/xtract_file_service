@@ -1,7 +1,6 @@
 from flask import Flask
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
-from app.docker_handler import build_all_images
 from celery import Celery
 
 app = Flask(__name__)

@@ -6,3 +6,5 @@ Werkzeug
 redis
 pyunpack
 patool
+click
+requests

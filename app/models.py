@@ -23,7 +23,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=False)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String)
     user_uuid = db.Column(db.String, index=True)
     user_metadata = db.relationship('FileMetadata', backref='user', lazy='dynamic')
 
