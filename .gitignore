@@ -3,3 +3,5 @@ app.db
 .idea/**
 __pycache__/**
 app/__pycache__/**
+xfs_cli/xfs_globals.json
+xfs_cli/xfs.egg-info

@@ -227,6 +227,7 @@ def xfs_cli():
     pass
 
 
+xfs_cli.add_command(config)
 xfs_cli.add_command(login)
 xfs_cli.add_command(create_user)
 xfs_cli.add_command(delete_user)
@@ -237,7 +238,3 @@ xfs_cli.add_command(view_metadata)
 xfs_cli.add_command(extract_metadata)
 xfs_cli.add_command(delete_metadata)
 xfs_cli.add_command(task_status)
-
-
-if __name__ == "__main__":
-    xfs_cli()
