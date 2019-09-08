@@ -45,10 +45,14 @@ venv/bin/flask run
 ```
 
 ## Interacting with the server
-The server is a REST API with no GUI or HTML. All interactions are done using `curl`. This section is documentation of
-how to interact with all of the server's features with `curl`.
+The server is a REST API with no GUI or HTML. All interactions are done using `curl` or the xtract_file_service command
+line interface. This section is documentation of how to interact with all of the server's features with `curl`.  
 
-### Creating a user
+
+**While you *can* use `curl` to interact with the server, it is recommended that you use the xtract_file_service CLI 
+instead. To learn how to use the CLI, click [here](xfs_cli/README.md).**
+
+### Creating a user:
 To create a new user, run:
 ```
 curl -X POST -d '{"Username": "your_username", "Email": "your_email", "Password": "your_password"}' http://localhost:5000

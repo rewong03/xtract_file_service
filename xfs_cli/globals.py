@@ -15,13 +15,13 @@ def setup():
     global globals_json
     global xfs_url
     global xfs_auth
-    if os.path.exists('xfs_globals.json'):
-        with open('xfs_globals.json') as f:
+    if os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/xfs_globals.json'):
+        with open(os.path.dirname(os.path.abspath(__file__)) + '/xfs_globals.json') as f:
             globals_json = json.load(f)
         xfs_url = globals_json['xfs_url']
         xfs_auth = globals_json['xfs_auth']
     else:
-        with open('xfs_globals.json', 'w') as f:
+        with open(os.path.dirname(os.path.abspath(__file__)) + '/xfs_globals.json', 'w') as f:
             json_to_dump = {"xfs_url": "http://localhost:5000",
                             "xfs_auth": {"username": None, "auth": None}}
             json.dump(json_to_dump, f)
